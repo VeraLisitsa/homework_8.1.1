@@ -13,6 +13,7 @@ public class Request {
     private String path;
     private List<String> headers;
     private String body;
+    private String queryString;
 
 
     public Request(String method, String path, List<String> headers, String body) {
@@ -20,6 +21,7 @@ public class Request {
         this.path = path;
         this.headers = headers;
         this.body = body;
+        this.queryString = getQueryParams();
     }
 
     public Request(String method, String path, List<String> headers) {
@@ -35,8 +37,12 @@ public class Request {
     public String getPath() {
         return path;
     }
+    public String getQueryString(){
+        return queryString;
+    }
 
-    public String getPathWithoutQuery() {
+
+    protected String getPathWithoutQuery() {
         if (path.contains("?")) {
             int indexQuery = path.indexOf("?");
             return path.substring(0, indexQuery);
@@ -45,35 +51,38 @@ public class Request {
         }
     }
 
-    protected List<NameValuePair> getQueryParams() {
+    private String getQueryParams() {
         List<NameValuePair> listUrlParameters = URLEncodedUtils.parse(path, StandardCharsets.UTF_8);
-
-        return listUrlParameters;
-
-    }
-
-    protected String getQueryParam(String name) {
-        String url = URLDecoder.decode(URLEncodedUtils.format(getQueryParams(), StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-
+        String url = URLDecoder.decode(URLEncodedUtils.format(listUrlParameters, StandardCharsets.UTF_8), StandardCharsets.UTF_8);
         if (url.contains("?")) {
             String[] parts = url.split("\\?");
-            String queryParams = parts[1];
-            if (queryParams.contains("&")) {
-                String[] queryParam = queryParams.split("&");
+            String query = parts[1];
 
-                for (int i = 0; i < queryParam.length; i++) {
-
-                    if (queryParam[i].substring(0, name.length()).equals(name)) {
-
-                        return queryParam[i];
-                    }
-                }
-                return null;
-            } else {
-                return null;
-            }
+            return query;
         } else {
             return null;
         }
     }
+
+    protected String getQueryParam(String name) {
+
+        if (queryString!=null) {
+            if (queryString.contains("&")) {
+                String[] queryParam = queryString.split("&");
+
+                for (int i = 0; i < queryParam.length; i++) {
+
+                    if (queryParam[i].length() > name.length() && queryParam[i].substring(0, name.length()).equals(name)) {
+                        return queryParam[i].substring(name.length() + 1);
+                    }
+                }
+            } else {
+                if (queryString.length() > name.length() && queryString.substring(0, name.length()).equals(name)) {
+                    return queryString.substring(name.length() + 1);
+                }
+            }
+        }
+        return null;
+    }
+
 }

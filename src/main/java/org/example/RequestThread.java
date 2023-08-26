@@ -100,7 +100,8 @@ public class RequestThread implements Runnable {
                 request = new Request(method, path, headers);
             }
 
-            System.out.println(request.getQueryParams());
+            System.out.println(request.getQueryString());
+
 
 
             if (request.getMethod().equals("GET")) {
