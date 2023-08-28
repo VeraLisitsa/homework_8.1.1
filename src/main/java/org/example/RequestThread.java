@@ -1,8 +1,12 @@
 package org.example;
 
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -69,6 +73,15 @@ public class RequestThread implements Runnable {
                 return;
             }
 
+
+            List<NameValuePair> queryParams = null;
+
+            if (path.contains("?")) {
+                String[] parts = path.split("\\?");
+                String query = parts[1];
+                queryParams = URLEncodedUtils.parse(query, StandardCharsets.UTF_8);
+            }
+
             final var headersDelimiter = new byte[]{'\r', '\n', '\r', '\n'};
             final var headersStart = requestLineEnd + requestLineDelimiter.length;
             final var headersEnd = indexOf(buffer, headersDelimiter, headersStart, read);
@@ -94,13 +107,14 @@ public class RequestThread implements Runnable {
                     final var bodyBytes = in.readNBytes(length);
 
                     final var body = new String(bodyBytes);
-                    request = new Request(method, path, headers, body);
+                    request = new Request(method, path, headers, body, queryParams);
                 }
             } else {
-                request = new Request(method, path, headers);
+                request = new Request(method, path, headers, queryParams);
             }
 
-            System.out.println(request.getQueryString());
+            System.out.println(request.getQueryParams());
+            System.out.println(request.getQueryParam("login"));
 
 
 
